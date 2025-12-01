@@ -2,7 +2,6 @@ from playwright.sync_api import Page
 from pages.login_page import LoginPage
 from utils.logger import Logger
 
-
 class LoginSteps:
     """Step file containing login-related business logic"""
 
