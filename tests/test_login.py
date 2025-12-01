@@ -9,7 +9,7 @@ class TestLogin:
     @pytest.mark.smoke
     @pytest.mark.login
     @pytest.mark.critical
-    def test_login_with_valid_credentials_and_verify_results(self, setup_page: Page):
+    def test_login_with_valid_credentials_and_verify_results(self, setup_page: Page, test_credentials: dict):
         """
         Test successful login and verify 3 results are displayed
 
@@ -27,12 +27,10 @@ class TestLogin:
         login_steps = LoginSteps(page)
 
         # Test data
-        email = "atulmysuru@gmail.com"
-        password = "India123#"
         expected_results = 3
 
         # Step 1-4: Perform login
-        login_steps.perform_login(email, password)
+        login_steps.perform_login(test_credentials["email"], test_credentials["password"])
 
         # Step 5: Verify login success
         assert login_steps.verify_login_success(), "Login should be successful"
@@ -48,7 +46,7 @@ class TestLogin:
 
     @pytest.mark.login
     @pytest.mark.regression
-    def test_login_displays_correct_product_count(self, setup_page: Page):
+    def test_login_displays_correct_product_count(self, setup_page: Page, test_credentials: dict):
         """
         Test that product cards match the displayed count
 
@@ -59,7 +57,7 @@ class TestLogin:
         login_steps = LoginSteps(page)
 
         # Perform login
-        login_steps.perform_login("atulmysuru@gmail.com", "India123#")
+        login_steps.perform_login(test_credentials["email"], test_credentials["password"])
 
         # Get displayed count from text
         displayed_count = login_steps.get_displayed_results_count()

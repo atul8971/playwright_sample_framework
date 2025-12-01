@@ -15,6 +15,35 @@ def pytest_addoption(parser):
         default="https://www.google.com",
         help="Base URL to navigate to"
     )
+    parser.addoption(
+        "--email",
+        action="store",
+        default="atulmysuru@gmail.com",
+        help="Login email address"
+    )
+    parser.addoption(
+        "--password",
+        action="store",
+        default="India123#",
+        help="Login password"
+    )
+
+
+@pytest.fixture(scope="session")
+def test_credentials(request):
+    """
+    Provide test credentials from CLI arguments or defaults
+
+    Args:
+        request: Pytest request object
+
+    Returns:
+        dict: Dictionary with email and password
+    """
+    return {
+        "email": request.config.getoption("--email"),
+        "password": request.config.getoption("--password")
+    }
 
 
 @pytest.fixture(scope="function", autouse=True)
