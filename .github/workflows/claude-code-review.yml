@@ -40,12 +40,104 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            # PR Review Guidelines
+
+            ## Review Output Format
+
+            All PR reviews must follow this structured format:
+
+            ### 1. Claude PR Overview
+            Start with a high-level header.
+
+            ### 2. Claude PR Summary
+            Provide a brief 1-2 sentence summary of what changed in the PR.
+
+            Then list the key issues found:
+            - Use bullet points for each major issue
+            - Be specific about what's wrong
+            - Reference file paths where relevant
+
+            ### 3. Confidence Score: X/5
+            Rate the PR on a scale of 1-5 where:
+            - 5/5 = Excellent, ready to merge
+            - 4/5 = Good, minor issues
+            - 3/5 = Acceptable, some concerns
+            - 2/5 = Needs work, multiple issues
+            - 1/5 = Critical issues, do not merge
+
+            After the score, explain the reasoning:
+            - List critical issues that affect the score
+            - Be specific about what needs attention
+            - Reference specific files that need changes
+
+            ### 4. Important Files Changed
+
+            Create a table with File Analysis:
+
+            | Filename | Score | Overview |
+            |----------|-------|----------|
+            | path/to/file.py | X/5 | Brief description of issues |
+            | path/to/file2.py | X/5 | Brief description of issues |
+
+            **Scoring criteria for individual files:**
+            - 5/5 = Perfect, no issues
+            - 4/5 = Minor style/documentation issues
+            - 3/5 = Some logical issues or code quality concerns
+            - 2/5 = Multiple issues or anti-patterns
+            - 1/5 = Critical bugs or security issues
+
+            ## Review Focus Areas
+
+            ### Python Best Practices
+            - Follow PEP 8 style guidelines
+            - Use type hints for function parameters and return values
+            - Proper error handling (avoid bare `except Exception`)
+            - No unused imports or variables
+            - Meaningful variable and function names
+            - Proper docstrings for public functions/classes
+
+            ### Code Quality
+            - Functions should be focused and not too long (ideally under 50 lines)
+            - Avoid code duplication
+            - Proper separation of concerns
+            - No hardcoded values where constants should be used
+
+            ### Code Structure
+            - Logical organization of code
+            - Proper use of classes and functions
+            - Clear module boundaries
+            - Import statements organized properly
+
+            ### Code Readability
+            - Clear naming conventions
+            - Comments where necessary (but code should be self-documenting)
+            - Consistent formatting
+            - Logical flow that's easy to follow
+
+            ### Common Issues to Flag
+            - **Critical**: Security vulnerabilities, data loss risks, breaking changes
+            - **High**: Logic errors, incorrect implementations, performance issues
+            - **Medium**: Code quality issues, maintainability concerns
+            - **Low**: Style issues, minor improvements, suggestions
+
+            ### Testing Requirements
+            - New functionality should have corresponding tests
+            - Tests should cover edge cases
+            - Test names should clearly describe what they test
+            - Avoid testing implementation details
+
+            ### Security Considerations
+            - No hardcoded credentials, API keys, or secrets
+            - Proper input validation
+            - SQL injection prevention (parameterized queries)
+            - Authentication and authorization checks
+
+            ## Review Tone
+            - Be constructive and helpful
+            - Explain WHY something is an issue, not just WHAT is wrong
+            - Provide suggestions for improvement
+            - Acknowledge good practices when you see them
+            - Be specific with file paths and line numbers when possible
 
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
 
