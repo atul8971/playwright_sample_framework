@@ -1,39 +1,46 @@
-name: Claude Code Review
+name: Claude PR Review
 
 on:
   pull_request:
     types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+  pull_request_review_comment:
+    types: [created]
+  issue_comment:
+    types: [created]
 
 jobs:
-  claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+  pr-review:
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'pull_request_review_comment' && github.event.comment.user.type != 'Bot') ||
+      (github.event_name == 'issue_comment' && 
+       github.event.issue.pull_request &&
+       github.event.comment.user.type != 'Bot' &&
+       contains(github.event.comment.body, '@claude'))
     runs-on: ubuntu-latest
+    environment: pr-action
     permissions:
       contents: read
       pull-requests: write
-      issues: read
       id-token: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/head', github.event.issue.number) || github.ref }}
 
-      - name: Run Claude Code Review
-        id: claude-review
-        uses: anthropics/claude-code-action@v1
+      - name: Load PR Review Guidelines
+        id: guidelines
+        run: |
+          if [ -f ".github/pr-review-guidelines.md" ]; then
+            echo "GUIDELINES<<EOF" >> $GITHUB_OUTPUT
+            cat .github/pr-review-guidelines.md >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "GUIDELINES=No custom guidelines found. Use standard Python best practices." >> $GITHUB_OUTPUT
+          fi
+
+      - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           track_progress: true
@@ -41,112 +48,27 @@ jobs:
           allowed_bots: '*'
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+            
+            ${{ github.event_name == 'pull_request_review_comment' && format('A developer replied to your review comment: "{0}"', github.event.comment.body) || '' }}
+            
+            ${{ github.event_name == 'issue_comment' && format('A developer mentioned you: "{0}"', github.event.comment.body) || '' }}
 
-            # PR Review Guidelines
+            # PR REVIEW GUIDELINES
+            ${{ steps.guidelines.outputs.GUIDELINES }}
 
-            ## Review Output Format
+            ---
 
-            All PR reviews must follow this structured format:
+            ${{ github.event_name == 'pull_request' && 'TASK: Review this PR and provide a comprehensive review summary following the "Review Output Format" specified in the guidelines above. Your review should include:
 
-            ### 1. Claude PR Overview
-            Start with a high-level header.
+            1. A "Claude PR Overview" header
+            2. A "Claude PR Summary" section with key findings in bullet points
+            3. A "Confidence Score: X/5" section with detailed reasoning
+            4. An "Important Files Changed" section with a markdown table showing each file, its score, and overview
 
-            ### 2. Claude PR Summary
-            Provide a brief 1-2 sentence summary of what changed in the PR.
+            After posting the summary as a PR comment, also add inline code review comments on specific lines where you found issues.
 
-            Then list the key issues found:
-            - Use bullet points for each major issue
-            - Be specific about what's wrong
-            - Reference file paths where relevant
+            Note: The PR branch is already checked out.' || 'TASK: Please respond appropriately to the developer comment above based on the context of your previous review.' }}
 
-            ### 3. Confidence Score: X/5
-            Rate the PR on a scale of 1-5 where:
-            - 5/5 = Excellent, ready to merge
-            - 4/5 = Good, minor issues
-            - 3/5 = Acceptable, some concerns
-            - 2/5 = Needs work, multiple issues
-            - 1/5 = Critical issues, do not merge
-
-            After the score, explain the reasoning:
-            - List critical issues that affect the score
-            - Be specific about what needs attention
-            - Reference specific files that need changes
-
-            ### 4. Important Files Changed
-
-            Create a table with File Analysis:
-
-            | Filename | Score | Overview |
-            |----------|-------|----------|
-            | path/to/file.py | X/5 | Brief description of issues |
-            | path/to/file2.py | X/5 | Brief description of issues |
-
-            **Scoring criteria for individual files:**
-            - 5/5 = Perfect, no issues
-            - 4/5 = Minor style/documentation issues
-            - 3/5 = Some logical issues or code quality concerns
-            - 2/5 = Multiple issues or anti-patterns
-            - 1/5 = Critical bugs or security issues
-
-            ## Review Focus Areas
-
-            ### Python Best Practices
-            - Follow PEP 8 style guidelines
-            - Use type hints for function parameters and return values
-            - Proper error handling (avoid bare `except Exception`)
-            - No unused imports or variables
-            - Meaningful variable and function names
-            - Proper docstrings for public functions/classes
-
-            ### Code Quality
-            - Functions should be focused and not too long (ideally under 50 lines)
-            - Avoid code duplication
-            - Proper separation of concerns
-            - No hardcoded values where constants should be used
-
-            ### Code Structure
-            - Logical organization of code
-            - Proper use of classes and functions
-            - Clear module boundaries
-            - Import statements organized properly
-
-            ### Code Readability
-            - Clear naming conventions
-            - Comments where necessary (but code should be self-documenting)
-            - Consistent formatting
-            - Logical flow that's easy to follow
-
-            ### Common Issues to Flag
-            - **Critical**: Security vulnerabilities, data loss risks, breaking changes
-            - **High**: Logic errors, incorrect implementations, performance issues
-            - **Medium**: Code quality issues, maintainability concerns
-            - **Low**: Style issues, minor improvements, suggestions
-
-            ### Testing Requirements
-            - New functionality should have corresponding tests
-            - Tests should cover edge cases
-            - Test names should clearly describe what they test
-            - Avoid testing implementation details
-
-            ### Security Considerations
-            - No hardcoded credentials, API keys, or secrets
-            - Proper input validation
-            - SQL injection prevention (parameterized queries)
-            - Authentication and authorization checks
-
-            ## Review Tone
-            - Be constructive and helpful
-            - Explain WHY something is an issue, not just WHAT is wrong
-            - Provide suggestions for improvement
-            - Acknowledge good practices when you see them
-            - Be specific with file paths and line numbers when possible
-
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
-
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
-
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,mcp__github_inline_comment__reply_to_comment,Bash(gh pr comment:*,gh api:*)"
