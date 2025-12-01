@@ -1,7 +1,7 @@
 from playwright.sync_api import Page
 from pages.base_page import BasePage
 from typing import List, Optional
-
+import pandas as pd
 
 class ProductsPage(BasePage):
     """Page object for products/dashboard page with search functionality"""
