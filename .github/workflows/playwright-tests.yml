@@ -51,9 +51,9 @@ jobs:
     - name: Run tests
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          pytest tests/ -vsm "${{ inputs.test_marker }}"
+          pytest tests/ -vsm "${{ inputs.test_marker }}" --html=pytest-report.html --self-contained-html
         else
-          pytest tests/ -vsm smoke
+          pytest tests/ -vsm smoke --html=pytest-report.html --self-contained-html
         fi
 
     - name: Upload test logs
