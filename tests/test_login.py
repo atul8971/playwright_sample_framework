@@ -30,7 +30,7 @@ class TestLogin:
         login_steps = LoginSteps(page)
 
         # Test data
-        expected_results = 3
+        expected_results = 5
 
         # Step 1-4: Perform login
         login_steps.perform_login(os.getenv('USERNAME'), os.getenv('PASSWORD'))
