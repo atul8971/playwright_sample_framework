@@ -17,6 +17,9 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      checks: write
 
     steps:
     - name: Checkout code
@@ -51,10 +54,20 @@ jobs:
     - name: Run tests
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          pytest tests/ -vsm "${{ inputs.test_marker }}" --html=pytest-report.html --self-contained-html
+          pytest tests/ -vsm "${{ inputs.test_marker }}" --html=pytest-report.html --self-contained-html --junitxml=pytest-results.xml
         else
-          pytest tests/ -vsm smoke --html=pytest-report.html --self-contained-html
+          pytest tests/ -vsm smoke --html=pytest-report.html --self-contained-html --junitxml=pytest-results.xml
         fi
+      continue-on-error: true
+
+    - name: Publish Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Pytest Results
+        path: pytest-results.xml
+        reporter: java-junit
+        fail-on-error: false
 
     - name: Upload test logs
       if: always()
