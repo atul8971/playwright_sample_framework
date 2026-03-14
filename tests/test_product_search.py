@@ -2,7 +2,9 @@ import pytest
 from playwright.sync_api import Page
 from steps.login_steps import LoginSteps
 from steps.search_steps import SearchSteps
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 class TestProductSearch:
     """Test suite for product search functionality"""
@@ -10,7 +12,7 @@ class TestProductSearch:
     @pytest.mark.smoke
     @pytest.mark.search
     @pytest.mark.login
-    def test_search_iphone_products(self, setup_page: Page, username, password):
+    def test_search_iphone_products(self, setup_page: Page):
         """
         Test case: Search for iPhone products and verify results
 
@@ -38,7 +40,7 @@ class TestProductSearch:
         login_steps.navigate_to_login_page(
             "https://rahulshettyacademy.com/client/#/auth/login"
         )
-        login_steps.perform_login(username, password)
+        login_steps.perform_login(os.getenv('USERNAME'), os.getenv('PASSWORD'))
 
         # Verify login was successful
         assert login_steps.verify_login_success(), "Login should be successful"

@@ -12,30 +12,6 @@ def pytest_addoption(parser):
         default="https://rahulshettyacademy.com/client/#/auth/login",
         help="Base URL to navigate to"
     )
-    parser.addoption(
-        "--username",
-        action="store",
-        default="atulmysuru@gmail.com",
-        help="Username for login"
-    )
-    parser.addoption(
-        "--password",
-        action="store",
-        default="India123#",
-        help="Password for login"
-    )
-
-
-@pytest.fixture(scope="session")
-def username(request):
-    """Fixture to get username from CLI"""
-    return request.config.getoption("--username")
-
-
-@pytest.fixture(scope="session")
-def password(request):
-    """Fixture to get password from CLI"""
-    return request.config.getoption("--password")
 
 
 @pytest.fixture(scope="function", autouse=True)

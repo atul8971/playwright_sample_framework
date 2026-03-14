@@ -1,7 +1,10 @@
 import pytest
 from playwright.sync_api import Page
 from steps.login_steps import LoginSteps
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class TestLogin:
     """Test class for login functionality"""
@@ -9,7 +12,7 @@ class TestLogin:
     @pytest.mark.smoke
     @pytest.mark.login
     @pytest.mark.critical
-    def test_login_with_valid_credentials_and_verify_results(self, setup_page: Page, username, password):
+    def test_login_with_valid_credentials_and_verify_results(self, setup_page: Page):
         """
         Test successful login and verify 3 results are displayed
 
@@ -30,7 +33,7 @@ class TestLogin:
         expected_results = 3
 
         # Step 1-4: Perform login
-        login_steps.perform_login(username, password)
+        login_steps.perform_login(os.getenv('USERNAME'), os.getenv('PASSWORD'))
 
         # Step 5: Verify login success
         assert login_steps.verify_login_success(), "Login should be successful"
@@ -46,7 +49,7 @@ class TestLogin:
 
     @pytest.mark.login
     @pytest.mark.regression
-    def test_login_displays_correct_product_count(self, setup_page: Page, username, password):
+    def test_login_displays_correct_product_count(self, setup_page: Page):
         """
         Test that product cards match the displayed count
 
@@ -57,7 +60,7 @@ class TestLogin:
         login_steps = LoginSteps(page)
 
         # Perform login
-        login_steps.perform_login(username, password)
+        login_steps.perform_login(os.getenv('USERNAME'), os.getenv('PASSWORD'))
 
         # Get displayed count from text
         displayed_count = login_steps.get_displayed_results_count()
