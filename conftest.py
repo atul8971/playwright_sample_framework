@@ -1,44 +1,63 @@
 import pytest
-from playwright.sync_api import Page, BrowserContext
+from playwright.sync_api import sync_playwright
 
 
 def pytest_addoption(parser):
     """
     Add custom CLI arguments
-
-    Args:
-        parser: Pytest argument parser
     """
     parser.addoption(
         "--url",
         action="store",
-        default="https://www.google.com",
+        default="https://rahulshettyacademy.com/client/#/auth/login",
         help="Base URL to navigate to"
+    )
+    parser.addoption(
+        "--username",
+        action="store",
+        default="atulmysuru@gmail.com",
+        help="Username for login"
+    )
+    parser.addoption(
+        "--password",
+        action="store",
+        default="India123#",
+        help="Password for login"
     )
 
 
+@pytest.fixture(scope="session")
+def username(request):
+    """Fixture to get username from CLI"""
+    return request.config.getoption("--username")
+
+
+@pytest.fixture(scope="session")
+def password(request):
+    """Fixture to get password from CLI"""
+    return request.config.getoption("--password")
+
+
 @pytest.fixture(scope="function", autouse=True)
-def setup_page(request, context: BrowserContext) -> Page:
-    """
-    Initialize page and navigate to URL from CLI args
+def setup_page(request):
+    # Get URL from CLI argument
+    base_url = request.config.getoption("--url")
 
-    Args:
-        request: Pytest request object
-        context: Browser context
-
-    Returns:
-        Page: Playwright page instance
-    """
-    # Get URL from CLI args
-    url = request.config.getoption("--url")
-
-    # Create new page
+    session = sync_playwright().start()
+    browser = session.chromium.launch(headless=False)
+    context = browser.new_context()
     page = context.new_page()
 
     # Navigate to URL
-    page.goto(url)
+    page.goto(base_url)
+
+    # Attach page to test class if needed
+    if request.cls:
+        request.cls.page = page
 
     yield page
 
-    # Cleanup
-    page.close()
+    # Teardown
+    context.close()
+    browser.close()
+    session.stop()

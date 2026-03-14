@@ -22,13 +22,13 @@ class ProductsPage(BasePage):
         self.signout_button = "role=button[name='Sign Out']"
 
         # Search and filter locators
-        self.search_input = "role=textbox[name='search']"
+        self.search_input = '(//input[@formcontrolname="productName"])[last()]'
         self.min_price_input = "role=textbox[name='Min Price']"
         self.max_price_input = "role=textbox[name='Max Price']"
 
         # Product card locators
         self.product_cards = ".card-body"
-        self.product_names = "h5.card-title"
+        self.product_names = 'div[class="card-body"] h5'
         self.product_prices = ".card-body b"
         self.add_to_cart_buttons = "button:has-text('Add To Cart')"
         self.view_buttons = "button:has-text('View')"
