@@ -44,7 +44,7 @@ def setup_page(request):
     base_url = request.config.getoption("--url")
 
     session = sync_playwright().start()
-    browser = session.chromium.launch(headless=False)
+    browser = session.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
 
