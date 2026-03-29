@@ -461,3 +461,25 @@ class BasePage:
         except AssertionError as e:
             Logger.log_assertion(self.logger, assertion_msg, False)
             raise e
+
+
+    def assert_attribute(self, locator: str | Locator, attribute: str, expected_value: str,
+                         message: Optional[str] = None) -> None:
+        """
+        Assert element's attribute has the expected value
+
+        Args:
+            locator: Element locator
+            attribute: Attribute name
+            expected_value: Expected attribute value
+            message: Optional custom assertion message
+        """
+        element = self._get_element(locator)
+        assertion_msg = message or f"Element {locator}'s attribute '{attribute}' should be '{expected_value}'"
+        self.logger.info(f"Asserting: {assertion_msg}")
+        try:
+            expect(element).to_have_attribute(attribute, expected_value)
+            Logger.log_assertion(self.logger, assertion_msg, True)
+        except AssertionError as e:
+            Logger.log_assertion(self.logger, assertion_msg, False)
+            raise e
